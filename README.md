@@ -55,8 +55,8 @@ ml_algos/
 │   │       └── viz_utils.py # Visualization tools
 │   └── sklearn_impl/ # Parallel sklearn implementations
 ├── data/
-│   ├── raw/ # Original datasets
-│   ├── processed/ # Preprocessed datasets
+│   ├── raw/ # Original datasets **(not tracked)**
+│   ├── processed/ # Preprocessed datasets **(not tracked)**
 │   └── examples/ # Sample input/output for testing
 ├── notebooks/
 │   ├── experiments/ # Model experimentation
@@ -68,7 +68,7 @@ ml_algos/
 │   └── test_utils/
 ├── requirements.txt
 ├── environment.yml
-├── README.md
+├── README.mdر
 └── .gitignore
 ```
 
@@ -128,7 +128,7 @@ Follow these steps to set up the project on your local machine:
    - If you prefer Pip, install the packages:
 
      ```bash
-     pip install kaggle pandas numpy
+     pip install kaggle
      ```
 
 2. **Authenticate by placing your `kaggle.json` API token in `~/.kaggle/` (see [Kaggle API documentation](https://www.kaggle.com/docs/api)).**
@@ -190,8 +190,8 @@ This script will load the data, initialize your machine learning model (which yo
 
 The `data/` directory is organized to manage all datasets effectively. It includes:
 
-- **`raw/`**: Contains original datasets in their unaltered form, ensuring access to the original data for reference or reprocessing.
-- **`processed/`**: Holds preprocessed datasets that are ready for model training, allowing for efficient data handling without the need to preprocess each time.
+- **`raw/`**: Contains original datasets in their unaltered form, ensuring access to the original data for reference or reprocessing **(not tracked)**.
+- **`processed/`**: Holds preprocessed datasets that are ready for model training, allowing for efficient data handling without the need to preprocess each time **(not tracked)**.
 - **`examples/`**: Provides sample input/output files for testing and demonstration purposes, facilitating the validation of implementations.
 
 ### Model Implementations
