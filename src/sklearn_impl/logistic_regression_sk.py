@@ -2,8 +2,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-import joblib
-import os
 
 data_path = 'data/processed/cleaned_breast-cancer.csv'
 df = pd.read_csv(data_path)
@@ -29,6 +27,4 @@ print("Accuracy:", accuracy)
 print("Confusion Matrix:\n", conf_matrix)
 print("Classification Report:\n", report)
 
-os.makedirs('models', exist_ok=True)
-joblib.dump(model, 'models/logistic_regression_model.pkl')
-print("Model saved to models/logistic_regression_model.pkl")
+

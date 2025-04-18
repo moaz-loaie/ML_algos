@@ -2,8 +2,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-import joblib
-import os
 
 data_path = 'data/processed/cleaned_student_data.csv'
 df = pd.read_csv(data_path)
@@ -28,6 +26,3 @@ print("Mean Squared Error:", mse)
 print("R² Score:", r2)
 
 
-os.makedirs('models', exist_ok=True)
-joblib.dump(model, 'models/linear_regression_model.pkl')
-print("Model saved to models/linear_regression_model.pkl")
