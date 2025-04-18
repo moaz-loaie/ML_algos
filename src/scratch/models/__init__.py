@@ -1,6 +1,5 @@
-
 from .base_model import BaseModel
-from .linear_regression_normal import LinearRegressionNormal
-from .logistic_regression_bgd import LogisticRegressionBGD
+from .linear_regression import LinearRegression
+from .logistic_regression import LogisticRegression
 
-__all__ = ["BaseModel", "LinearRegressionNormal", "LogisticRegressionBGD"]
+__all__ = ["BaseModel", "LinearRegression", "LogisticRegression"]
