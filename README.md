@@ -7,6 +7,7 @@ This project provides dual implementations of common machine learning algorithms
 - [Project Overview](#project-overview)
 - [Directory Structure](#directory-structure)
 - [Installation](#installation)
+- [Dataset Acquisition](#dataset-acquisition)
 - [Usage](#usage)
 - [Project Components](#project-components)
 - [Contributing](#contributing)
@@ -41,9 +42,11 @@ ml_algos/
 │   │   ├── models/
 │   │   │   ├── **__init__**.py
 │   │   │   ├── base_model.py # Abstract base class for all models
-│   │   │   ├── linear_models.py # Linear/Logistic regression
-│   │   │   ├── tree_models.py # Decision trees
-│   │   │   └── neural_network.py # Neural network implementation
+│   │   │   ├── linear_regression.py
+│   │   │   ├── logistic_regression.py
+│   │   │   ├── tree_models.py # Decision trees (coming soon)
+│   │   │   └── neural_network.py # Neural network implementation (coming soon)
+│   │   │   └── ... (other models)
 │   │   └── utils/
 │   │       ├── **__init__**.py
 │   │       ├── data_utils.py # Data processing utilities
@@ -86,23 +89,90 @@ Follow these steps to set up the project on your local machine:
 
    - using conda:
 
-      ```bash
-      conda env create -p .env -f environment.yml  # in the same project working directory
-      conda activate ./.env
-      ```
+     ```bash
+     conda env create -p .env -f environment.yml  # in the same project working directory
+     conda activate ./.env
+     ```
 
    - using venv:
 
-      ```bash
-      python -m venv .env  # in the same project working directory
-      source .env/bin/activate  # On Windows: .env\Scripts\activate 
-      ```
+     ```bash
+     python -m venv .env  # in the same project working directory
+     source .env/bin/activate  # On Windows: .env\Scripts\activate
+     ```
 
 3. **Install the required dependencies(using venv):**
 
    ```bash
    pip install -r requirements.txt
    ```
+
+## Dataset Acquisition
+
+### Find the Datasets on Kaggle
+
+- **Visit Kaggle Datasets and copy the URLs for the datasets:**
+  - [Student Performance - Multiple Linear Regression](https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression)
+  - [Breast Cancer Dataset](https://www.kaggle.com/datasets/yasserh/breast-cancer-dataset)
+
+### Download the Datasets Using the Kaggle API
+
+1. **Install the Kaggle API if not already installed:**
+
+   - using conda:
+
+     ```bash
+     conda install -c conda-forge kaggle
+     ```
+
+   - If you prefer Pip, install the packages:
+
+     ```bash
+     pip install kaggle pandas numpy
+     ```
+
+2. **Authenticate by placing your `kaggle.json` API token in `~/.kaggle/` (see [Kaggle API documentation](https://www.kaggle.com/docs/api)).**
+3. **Download the datasets to `data/raw/`:**
+
+   ```bash
+   kaggle datasets download -d nikhil7280/student-performance-multiple-linear-regression -p data/raw/
+   kaggle datasets download -d yasserh/breast-cancer-dataset -p data/raw/
+   ```
+
+### Manually Download (Alternative)
+
+1. **Visit the dataset URLs:**
+   - [Student Performance - Multiple Linear Regression](https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression)
+   - [Breast Cancer Dataset](https://www.kaggle.com/datasets/yasserh/breast-cancer-dataset)
+2. **Download the files and place them in `data/raw/`.**
+3. **Extract the Datasets**
+
+   - If the downloaded files are zip archives, extract them:
+
+     ```bash
+     unzip data/raw/student-performance-multiple-linear-regression.zip -d data/raw/
+     unzip data/raw/breast-cancer-dataset.zip -d data/raw/
+     ```
+
+### Modify the Working Tree
+
+Since `data/raw/` and `data/processed/` are not tracked by Git, manually manage these directories.
+
+- Preprocess the data (e.g., using a script or notebook) and save the processed files to `data/processed/`. Example:
+
+  ```python
+  import pandas as pd
+
+  # Student Performance Dataset
+  student_data = pd.read_csv('data/raw/student-performance.csv')
+  # Preprocess student data here
+  student_data.to_csv('data/processed/student_processed.csv', index=False)
+
+  # Breast Cancer Dataset
+  cancer_data = pd.read_csv('data/raw/breast-cancer.csv')
+  # Preprocess breast cancer data here
+  cancer_data.to_csv('data/processed/cancer_processed.csv', index=False)
+  ```
 
 ## Usage
 
@@ -188,5 +258,4 @@ SOFTWARE.
 
 - Thanks to the [scikit-learn](https://scikit-learn.org/) team for their excellent library
 - Special thanks to the developers of [NumPy](https://numpy.org/) and [Matplotlib](https://matplotlib.org/) for providing the backbone tools that make numerical computing and visualization accessible.
-- All contributors and maintainers.
-- The open-source community.
+- All contributors and maintainers and the open-source community.
