@@ -24,6 +24,8 @@ class LinearRegression(BaseModel):
         Number of iterations for gradient descent methods.
     alpha : float, default=0.01
         Regularization strength for Ridge Regression.
+    verbose : bool, default=False
+        If True, print training progress during iterative methods.
 
     Attributes:
     -----------
@@ -34,7 +36,12 @@ class LinearRegression(BaseModel):
     """
 
     def __init__(
-        self, method="normal", learning_rate=0.01, n_iterations=1000, alpha=0.01
+        self,
+        method="normal",
+        learning_rate=0.01,
+        n_iterations=1000,
+        alpha=0.01,
+        verbose=False,
     ):
         """
         Initialize the LinearRegression model.
@@ -49,11 +56,14 @@ class LinearRegression(BaseModel):
             Number of iterations for gradient descent methods.
         alpha : float, default=0.01
             Regularization strength for Ridge Regression.
+        verbose : bool, default=False
+            If True, print training progress during iterative methods.
         """
         self.method = method
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
         self.alpha = alpha
+        self.verbose = verbose  # Controls whether training progress is printed
         self.weights = None
         self.loss_history = []
 
@@ -112,11 +122,14 @@ class LinearRegression(BaseModel):
         """
         self.weights = np.zeros(X_b.shape[1])
         self.loss_history = []
-        for _ in range(self.n_iterations):
+        for i in range(self.n_iterations):
             predictions = X_b.dot(self.weights)
             error = predictions - y
             loss = np.mean(error**2)
             self.loss_history.append(loss)
+            # Print training progress if verbose is enabled
+            if self.verbose and (i % 100 == 0 or i == self.n_iterations - 1):
+                print(f"Iteration {i}: Loss = {loss:.6f}")
             gradient = X_b.T.dot(error) / len(y)
             self.weights -= self.learning_rate * gradient
 
@@ -133,18 +146,22 @@ class LinearRegression(BaseModel):
         """
         self.weights = np.zeros(X_b.shape[1])
         self.loss_history = []
-        for _ in range(self.n_iterations):
+        for i in range(self.n_iterations):
             total_loss = 0
             indices = np.random.permutation(len(y))
-            for i in indices:
-                xi = X_b[i : i + 1]
-                yi = y[i : i + 1]
+            for j in indices:
+                xi = X_b[j : j + 1]
+                yi = y[j : j + 1]
                 prediction = xi.dot(self.weights)
                 error = prediction - yi
                 total_loss += error**2
                 gradient = xi.T.dot(error)
                 self.weights -= self.learning_rate * gradient
-            self.loss_history.append(total_loss / len(y))
+            avg_loss = total_loss / len(y)
+            self.loss_history.append(avg_loss)
+            # Print training progress if verbose is enabled
+            if self.verbose and (i % 10 == 0 or i == self.n_iterations - 1):
+                print(f"Epoch {i}: Average Loss = {avg_loss:.6f}")
 
     def _fit_ridge(self, X_b, y):
         """

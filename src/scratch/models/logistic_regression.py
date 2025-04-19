@@ -20,6 +20,8 @@ class LogisticRegression(BaseModel):
         Learning rate for gradient descent.
     n_iterations : int, default=1000
         Number of iterations for gradient descent.
+    verbose : bool, default=False
+        If True, print training progress during iterative methods.
 
     Attributes:
     -----------
@@ -29,7 +31,9 @@ class LogisticRegression(BaseModel):
         History of loss values during training.
     """
 
-    def __init__(self, method="batch_gd", learning_rate=0.01, n_iterations=1000):
+    def __init__(
+        self, method="batch_gd", learning_rate=0.01, n_iterations=1000, verbose=False
+    ):
         """
         Initialize the LogisticRegression model.
 
@@ -41,10 +45,13 @@ class LogisticRegression(BaseModel):
             Learning rate for gradient descent.
         n_iterations : int, default=1000
             Number of iterations for gradient descent.
+        verbose : bool, default=False
+            If True, print training progress during iterative methods.
         """
         self.method = method
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
+        self.verbose = verbose  # Controls whether training progress is printed
         self.weights = None
         self.loss_history = []
 
@@ -85,7 +92,7 @@ class LogisticRegression(BaseModel):
         y : array-like, shape (n_samples,)
             Target values.
         """
-        for _ in range(self.n_iterations):
+        for i in range(self.n_iterations):
             predictions = sigmoid(X_b.dot(self.weights))
             error = predictions - y
             loss = -np.mean(
@@ -93,6 +100,9 @@ class LogisticRegression(BaseModel):
                 + (1 - y) * np.log(1 - predictions + 1e-15)
             )
             self.loss_history.append(loss)
+            # Print training progress if verbose is enabled
+            if self.verbose and (i % 100 == 0 or i == self.n_iterations - 1):
+                print(f"Iteration {i}: Loss = {loss:.6f}")
             gradient = X_b.T.dot(error) / len(y)
             self.weights -= self.learning_rate * gradient
 
@@ -107,12 +117,12 @@ class LogisticRegression(BaseModel):
         y : array-like, shape (n_samples,)
             Target values.
         """
-        for _ in range(self.n_iterations):
+        for i in range(self.n_iterations):
             total_loss = 0
             indices = np.random.permutation(len(y))
-            for i in indices:
-                xi = X_b[i : i + 1]
-                yi = y[i : i + 1]
+            for j in indices:
+                xi = X_b[j : j + 1]
+                yi = y[j : j + 1]
                 prediction = sigmoid(xi.dot(self.weights))
                 error = prediction - yi
                 total_loss -= yi * np.log(prediction + 1e-15) + (1 - yi) * np.log(
@@ -120,7 +130,11 @@ class LogisticRegression(BaseModel):
                 )
                 gradient = xi.T.dot(error)
                 self.weights -= self.learning_rate * gradient
-            self.loss_history.append(total_loss / len(y))
+            avg_loss = total_loss / len(y)
+            self.loss_history.append(avg_loss)
+            # Print training progress if verbose is enabled
+            if self.verbose and (i % 10 == 0 or i == self.n_iterations - 1):
+                print(f"Epoch {i}: Average Loss = {avg_loss:.6f}")
 
     def predict(self, X):
         """
