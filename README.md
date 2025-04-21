@@ -59,10 +59,28 @@ ml_algos/
 │   ├── processed/ # Preprocessed datasets **(not tracked)**
 │   └── examples/ # Sample input/output for testing
 ├── notebooks/
+│   ├── data_preprocessing.ipynb # preprocessing notebook (run it to get the preprocessed data)
 │   ├── experiments/ # Model experimentation
-│   │   └── model_training_experiments.ipynb # Notebook for training and evaluating models
+│   │   ├── linear_regression/
+│   │   │   ├── sgd_from_scratch.ipynb # SGD for Linear Regression from scratch
+│   │   │   ├── batch_gradient_descent_from_scratch.ipynb # Batch Gradient Descent for Linear Regression from scratch
+│   │   │   ├── normal_equation_from_scratch.ipynb # Normal Equation for Linear Regression from scratch
+│   │   │   ├── sgd_sklearn.ipynb # SGD for Linear Regression with scikit-learn
+│   │   │   ├── batch_gradient_descent_sklearn.ipynb # Batch Gradient Descent for Linear Regression with scikit-learn (if applicable)
+│   │   │   └── normal_equation_sklearn.ipynb # Normal Equation for Linear Regression with scikit-learn (if applicable)
+│       └── logistic_regression/
+│   │       ├── sgd_from_scratch.ipynb # SGD for Logistic Regression from scratch
+│   │       ├── batch_gradient_descent_from_scratch.ipynb # Batch Gradient Descent for Logistic Regression from scratch
+│   │       ├── sgd_sklearn.ipynb # SGD for Logistic Regression with scikit-learn
+│   │       └── batch_gradient_descent_sklearn.ipynb # Batch Gradient Descent for Logistic Regression with scikit-learn (if applicable)
 │   └── comparisons/ # Comparing implementations
-│       └── model_comparisons.ipynb # Notebook for comparing different models
+│       ├── linear_regression_comparisons/
+│       │   ├── sgd_comparisons.ipynb # Compare SGD for Linear Regression from scratch vs scikit-learn
+│       │   ├── batch_gradient_descent_comparisons.ipynb # Compare Batch Gradient Descent for Linear Regression from scratch vs scikit-learn
+│       │   └── normal_equation_comparisons.ipynb # Compare Normal Equation for Linear Regression from scratch vs scikit-learn
+│       └── logistic_regression_comparisons/
+│           ├── sgd_comparisons.ipynb # Compare SGD for Logistic Regression from scratch vs scikit-learn
+│           └── batch_gradient_descent_comparisons.ipynb # Compare Batch Gradient Descent for Logistic Regression from scratch vs scikit-learn
 ├── tests/
 │   ├── test_models/
 │   └── test_utils/
@@ -176,13 +194,21 @@ Since `data/raw/` and `data/processed/` are not tracked by Git, manually manage 
 
 ## Usage
 
-To begin training a model, simply run the main training script:
+### 1. Preprocessing the Data
 
-```bash
-python src/scratch/train_model.py
-```
+Before you can train a model, the raw data needs to be preprocessed. To do this, run the following [notebook](notebooks/data_preprocessing.ipynb):
 
-This script will load the data, initialize your machine learning model (which you can select or modify in the `src/scratch/models/` directory), and start the training process. For further interactive analysis and experimentation, check out the notebooks in the [`notebooks/`](notebooks/) folder.
+This notebook takes the raw datasets from **`data/raw/`** and processes them, saving the results to **`data/processed/`**. This step is essential, as all models depend on the preprocessed data.
+
+### 2. Training Your Model
+
+The project does not include a standalone **`train_model.py`** script. Instead, you can train your own model by working with the notebooks in the [notebooks](notebooks/) folder. These notebooks are organized by algorithm and implementation (e.g., from scratch or using libraries like scikit-learn).
+
+You have two options:
+
+- **Modify an Existing Notebook:** Open one of the notebooks in notebooks/experiments/, tweak the parameters, or adjust the model to suit your needs.
+- **Write Your Own Notebook:** Create a new notebook in the same folder for a fully custom training setup.
+  The notebooks are designed to be flexible and interactive, allowing you to experiment with different models and configurations easily.
 
 ## Project Components
 
