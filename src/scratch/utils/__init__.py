@@ -24,6 +24,7 @@ from .metrics import (
     recall_score,
     root_mean_squared_error,
 )
+from .training_utils import check_early_stopping, get_decayed_lr, log_progress
 from .viz_utils import (
     plot_actual_vs_predicted,
     plot_confusion_matrix,
@@ -90,4 +91,8 @@ __all__ = [
     "plot_precision_recall_curve",
     "plot_scatter_for_classification",
     "plot_pairplot",
+    # Training utilities
+    "check_early_stopping",
+    "log_progress",
+    "get_decayed_lr",
 ]
