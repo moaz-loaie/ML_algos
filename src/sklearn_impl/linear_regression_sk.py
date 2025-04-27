@@ -6,6 +6,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle as sk_shuffle
 
 from ..scratch.models.base_model import BaseModel
+from ..scratch.utils.training_utils import check_early_stopping, log_progress
 
 
 class LinearRegressionSK(BaseModel):
@@ -37,6 +38,8 @@ class LinearRegressionSK(BaseModel):
         Minimum improvement in loss required to reset the early stopping counter.
     verbose : bool, default=False
         If True, prints loss every 100 epochs.
+    interval : int, default=100
+        Frequency (in epochs) to output a log message when verbose is True.
     **kwargs : dict
         Additional keyword arguments passed to the scikit-learn estimator.
 
@@ -57,6 +60,7 @@ class LinearRegressionSK(BaseModel):
         n_iter_no_change: int = 10,
         tol: float = 1e-4,
         verbose: bool = False,
+        interval=100,
         **kwargs,
     ):
         self.method = method.lower()
@@ -66,6 +70,7 @@ class LinearRegressionSK(BaseModel):
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
         self.verbose = verbose
+        self.interval = interval
         self.kwargs = kwargs
         self.loss_history_ = []
 
@@ -105,8 +110,9 @@ class LinearRegressionSK(BaseModel):
             if self.verbose:
                 print(f"Closed-form solution completed. Final Loss = {final_loss:.6f}")
         elif self.method in ["sgd", "batch"]:
-            best_loss = float("inf")
-            wait = 0
+            if self.early_stopping:
+                best_loss = float("inf")
+                counter = 0
             self.model.fit(X, y)  # Initial fit
             for epoch in range(self.n_iterations):
                 if self.method == "sgd":
@@ -116,24 +122,26 @@ class LinearRegressionSK(BaseModel):
                 self.model.partial_fit(X_epoch, y_epoch)
                 current_loss = mean_squared_error(y, self.model.predict(X))
                 self.loss_history_.append(current_loss)
-                if self.verbose and (
-                    epoch % 100 == 0 or epoch == self.n_iterations - 1
-                ):
-                    print(
-                        f"Epoch {epoch + 1}/{self.n_iterations}: Loss = {current_loss:.6f}"
-                    )
+                log_progress(
+                    epoch,
+                    self.n_iterations,
+                    current_loss,
+                    self.learning_rate,
+                    self.verbose,
+                    self.interval,
+                )
                 if self.early_stopping:
-                    if current_loss < best_loss - self.tol:
-                        best_loss = current_loss
-                        wait = 0
-                    else:
-                        wait += 1
-                        if wait >= self.n_iter_no_change:
-                            if self.verbose:
-                                print(
-                                    f"Early stopping at epoch {epoch}: Loss = {current_loss:.6f}"
-                                )
-                            break
+                    best_loss, counter, stop = check_early_stopping(
+                        current_loss,
+                        best_loss,
+                        self.tol,
+                        counter,
+                        self.n_iter_no_change,
+                        self.verbose,
+                        epoch,
+                    )
+                    if stop:
+                        break
         return self
 
     def predict(self, X):
