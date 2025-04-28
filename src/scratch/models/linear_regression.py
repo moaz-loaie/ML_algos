@@ -1,6 +1,7 @@
 import numpy as np
 
 from ..utils.math_utils import add_bias_term, matrix_inverse
+from ..utils.training_utils import check_early_stopping, get_decayed_lr, log_progress
 from .base_model import BaseModel
 
 
@@ -26,6 +27,8 @@ class LinearRegression(BaseModel):
         Regularization strength for Ridge Regression.
     verbose : bool, default=False
         If True, print training progress during iterative methods.
+    interval : int, default=100
+        Frequency (in epochs) to output a log message when verbose is True.
     lr_decay : float, default=0.0
         The decay rate for learning rate schedule. Default is 0 (no decay).
     batch_size : int, default=1
@@ -52,6 +55,7 @@ class LinearRegression(BaseModel):
         n_iterations=1000,
         alpha=0.01,
         verbose=False,
+        interval=100,
         lr_decay=0.0,
         batch_size=1,
         early_stopping=False,
@@ -73,6 +77,8 @@ class LinearRegression(BaseModel):
             Regularization strength for Ridge Regression.
         verbose : bool, default=False
             If True, print training progress during iterative methods.
+        interval : int, default=100
+            Frequency (in epochs) to output a log message when verbose is True.
         lr_decay : float, default=0.0
             The decay rate for learning rate schedule. Default is 0 (no decay).
         batch_size : int, default=1
@@ -89,6 +95,7 @@ class LinearRegression(BaseModel):
         self.n_iterations = n_iterations
         self.alpha = alpha
         self.verbose = verbose
+        self.interval = interval
         self.lr_decay = lr_decay
         self.batch_size = batch_size
         self.early_stopping = early_stopping
@@ -114,16 +121,17 @@ class LinearRegression(BaseModel):
             Returns the instance itself.
         """
         X_b = add_bias_term(X)
-        if self.method == "normal":
-            self._fit_normal(X_b, y)
-        elif self.method == "batch_gd":
-            self._fit_batch_gd(X_b, y)
-        elif self.method == "stochastic_gd":
-            self._fit_stochastic_gd(X_b, y)
-        elif self.method == "ridge":
-            self._fit_ridge(X_b, y)
-        else:
-            raise ValueError("Invalid method specified")
+        methods = {
+            "normal": self._fit_normal,
+            "batch_gd": self._fit_batch_gd,
+            "stochastic_gd": self._fit_stochastic_gd,
+            "ridge": self._fit_ridge,
+        }
+
+        try:
+            methods[self.method](X_b, y)
+        except KeyError:
+            raise ValueError(f"Invalid method specified: {self.method}")
         return self
 
     def _fit_normal(self, X_b, y):
@@ -157,30 +165,31 @@ class LinearRegression(BaseModel):
         if self.early_stopping:
             best_loss = float("inf")
             counter = 0
-        for i in range(self.n_iterations):
+        for epoch in range(self.n_iterations):
             # Apply decay to the learning rate, e.g., new_lr = initial_lr / (1 + decay_rate * epoch)
-            current_lr = (
-                init_lr / (1 + self.lr_decay * i) if self.lr_decay > 0 else init_lr
+            current_lr = get_decayed_lr(
+                initial_lr=init_lr, lr_decay=self.lr_decay, epoch=epoch
             )
             predictions = X_b.dot(self.weights)
             error = predictions - y
             loss = np.mean(error**2)
             self.loss_history.append(loss)
             # Print training progress if verbose is enabled
-            if self.verbose and (i % 100 == 0 or i == self.n_iterations - 1):
-                print(
-                    f"Epoch {i + 1}/{self.n_iterations}: Loss = {loss:.6f} | Learning Rate = {current_lr:.6f}"
-                )
+            log_progress(
+                epoch, self.n_iterations, loss, current_lr, self.verbose, self.interval
+            )
             if self.early_stopping:
-                if loss < best_loss - self.tol:
-                    best_loss = loss
-                    counter = 0
-                else:
-                    counter += 1
-                    if counter >= self.n_iter_no_change:
-                        if self.verbose:
-                            print(f"Early stopping at iteration {i}: Loss = {loss:.6f}")
-                        break
+                best_loss, counter, stop = check_early_stopping(
+                    loss,
+                    best_loss,
+                    self.tol,
+                    counter,
+                    self.n_iter_no_change,
+                    self.verbose,
+                    epoch,
+                )
+                if stop:
+                    break
             gradient = X_b.T.dot(error) / len(y)
             self.weights -= current_lr * gradient
 
@@ -205,11 +214,9 @@ class LinearRegression(BaseModel):
         if self.early_stopping:
             best_loss = float("inf")
             counter = 0
-        for i in range(self.n_iterations):
+        for epoch in range(self.n_iterations):
             # Apply decay to the learning rate, e.g., new_lr = initial_lr / (1 + decay_rate * epoch)
-            current_lr = (
-                init_lr / (1 + self.lr_decay * i) if self.lr_decay > 0 else init_lr
-            )
+            current_lr = get_decayed_lr(init_lr, self.lr_decay, epoch)
             total_loss = 0
             # Shuffle the data indices for each epoch
             indices = np.random.permutation(n_samples)
@@ -231,20 +238,26 @@ class LinearRegression(BaseModel):
             avg_loss = avg_loss.item() if isinstance(avg_loss, np.ndarray) else avg_loss
             self.loss_history.append(avg_loss)
             # Print the training progress along with the current decayed learning rate if verbose is enabled
-            if self.verbose and (i % 10 == 0 or i == self.n_iterations - 1):
-                print(
-                    f"Epoch {i + 1}/{self.n_iterations}: Loss = {avg_loss:.6f} | Learning Rate = {current_lr:.6f}"
-                )
+            log_progress(
+                epoch,
+                self.n_iterations,
+                avg_loss,
+                current_lr,
+                self.verbose,
+                self.interval,
+            )
             if self.early_stopping:
-                if avg_loss < best_loss - self.tol:
-                    best_loss = avg_loss
-                    counter = 0
-                else:
-                    counter += 1
-                    if counter >= self.n_iter_no_change:
-                        if self.verbose:
-                            print(f"Early stopping at epoch {i}: Loss = {avg_loss:.6f}")
-                        break
+                best_loss, counter, stop = check_early_stopping(
+                    avg_loss,
+                    best_loss,
+                    self.tol,
+                    counter,
+                    self.n_iter_no_change,
+                    self.verbose,
+                    epoch,
+                )
+                if stop:
+                    break
 
     def _fit_ridge(self, X_b, y):
         """
