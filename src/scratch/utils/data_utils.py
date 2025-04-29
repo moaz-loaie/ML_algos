@@ -25,9 +25,9 @@ def split_data(X, y, test_size=0.2):
 
     Parameters
     ----------
-    X : array-like, shape (n_samples, n_features)
+    X : array-like or pd.DataFrame
         Input feature matrix.
-    y : array-like, shape (n_samples,)
+    y : array-like or pd.Series
         Target array.
     test_size : float, optional
         Proportion of the dataset to include as the test set (default is 0.2).
@@ -35,7 +35,7 @@ def split_data(X, y, test_size=0.2):
     Returns
     -------
     tuple
-        A tuple containing four elements: (X_train, X_test, y_train, y_test) where
+        (X_train, X_test, y_train, y_test) where:
         - X_train and y_train represent the training features and targets.
         - X_test and y_test represent the test features and targets.
     """
@@ -43,22 +43,45 @@ def split_data(X, y, test_size=0.2):
     test_set_size = int(len(X) * test_size)
     test_indices = indices[:test_set_size]
     train_indices = indices[test_set_size:]
-    return X[train_indices], X[test_indices], y[train_indices], y[test_indices]
+
+    # Use .iloc if X is a DataFrame; otherwise, index directly
+    if isinstance(X, pd.DataFrame):
+        X_train = X.iloc[train_indices]
+        X_test = X.iloc[test_indices]
+    else:
+        X_train = X[train_indices]
+        X_test = X[test_indices]
+
+    if isinstance(y, (pd.Series, pd.DataFrame)):
+        y_train = y.iloc[train_indices]
+        y_test = y.iloc[test_indices]
+    else:
+        y_train = y[train_indices]
+        y_test = y[test_indices]
+
+    return X_train, X_test, y_train, y_test
 
 
 def shuffle_data_pandas(data):
     """
     Shuffle data using pandas sample method.
 
-    Args:
-        data (pd.DataFrame): Input DataFrame to shuffle
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input DataFrame to shuffle.
 
-    Returns:
-        pd.DataFrame: Shuffled DataFrame
+    Returns
+    -------
+    pd.DataFrame
+        Shuffled DataFrame.
 
-    Raises:
-        TypeError: If input is not a pandas DataFrame
-        ValueError: If DataFrame is empty
+    Raises
+    ------
+    TypeError
+        If input is not a pandas DataFrame.
+    ValueError
+        If DataFrame is empty.
     """
     if not isinstance(data, pd.DataFrame):
         raise TypeError("Input must be a pandas DataFrame")
@@ -72,15 +95,22 @@ def shuffle_data_numpy(data):
     """
     Shuffle data using numpy permutation.
 
-    Args:
-        data (pd.DataFrame): Input DataFrame to shuffle
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input DataFrame to shuffle.
 
-    Returns:
-        pd.DataFrame: Shuffled DataFrame
+    Returns
+    -------
+    pd.DataFrame
+        Shuffled DataFrame.
 
-    Raises:
-        TypeError: If input is not a pandas DataFrame
-        ValueError: If DataFrame is empty
+    Raises
+    ------
+    TypeError
+        If input is not a pandas DataFrame.
+    ValueError
+        If DataFrame is empty.
     """
     if not isinstance(data, pd.DataFrame):
         raise TypeError("Input must be a pandas DataFrame")
@@ -96,24 +126,27 @@ def normalize(X):
     Scale features to the range [0, 1].
 
     Each feature column in X is transformed so that its minimum value becomes 0 and its maximum becomes 1.
+    For features with a constant value (zero variance), the denominator is set to 1 to avoid division-by-zero.
 
     Parameters
     ----------
-    X : np.ndarray
+    X : np.ndarray or pd.DataFrame
         Input data matrix where rows represent samples and columns represent features.
 
     Returns
     -------
-    np.ndarray
+    np.ndarray or pd.DataFrame
         Scaled data with each feature normalized to the [0, 1] range.
-
-    Notes
-    -----
-    If a feature has constant value (zero variance), a division-by-zero error may occur.
     """
     min_val = X.min(axis=0)
     max_val = X.max(axis=0)
-    return (X - min_val) / (max_val - min_val)
+    denom = max_val - min_val
+    # Avoid division by zero: Replace zeros in denominator with one
+    if isinstance(denom, pd.Series):
+        denom[denom == 0] = 1
+    else:
+        denom[denom == 0] = 1
+    return (X - min_val) / denom
 
 
 def handle_missing_values(df, strategy="mean"):
@@ -125,6 +158,8 @@ def handle_missing_values(df, strategy="mean"):
     - 'median': Replace missing values with the column median.
     - 'mode': Replace missing values with the column mode.
     - 'drop': Remove rows that contain any missing values.
+    - 'differentiated': For numeric columns, replace missing values with the median;
+        for categorical columns, replace with the mode.
 
     Parameters
     ----------
@@ -132,7 +167,7 @@ def handle_missing_values(df, strategy="mean"):
         Input DataFrame that may contain missing values.
     strategy : str, optional
         Strategy to handle missing values (default is 'mean'). Must be one of
-        {'mean', 'median', 'mode', 'drop'}.
+        {'mean', 'median', 'mode', 'drop', 'differentiated'}.
 
     Returns
     -------
@@ -142,7 +177,7 @@ def handle_missing_values(df, strategy="mean"):
     Raises
     ------
     ValueError
-        If the provided strategy is not one of 'mean', 'median', 'mode', or 'drop'.
+        If the provided strategy is not one of 'mean', 'median', 'mode', 'drop', or 'differentiated'.
     """
     if strategy == "drop":
         return df.dropna()
@@ -151,8 +186,21 @@ def handle_missing_values(df, strategy="mean"):
     elif strategy == "mode":
         # Use the first mode in case there are multiple modes
         return df.fillna(df.mode().iloc[0])
+    elif strategy == "differentiated":
+        df_filled = df.copy()
+        numeric_cols = df_filled.select_dtypes(include=[np.number]).columns
+        categorical_cols = df_filled.select_dtypes(
+            include=["object", "category"]
+        ).columns
+        for col in numeric_cols:
+            df_filled[col] = df_filled[col].fillna(df_filled[col].median())
+        for col in categorical_cols:
+            df_filled[col] = df_filled[col].fillna(df_filled[col].mode().iloc[0])
+        return df_filled
     else:
-        raise ValueError("Strategy must be 'mean', 'median', 'mode', or 'drop'")
+        raise ValueError(
+            "Strategy must be 'mean', 'median', 'mode', 'drop', or 'differentiated'"
+        )
 
 
 def encode_categorical(df):
