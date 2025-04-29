@@ -44,6 +44,8 @@ ml_algos/
 │   │   │   ├── base_model.py # Abstract base class for all models
 │   │   │   ├── linear_regression.py
 │   │   │   ├── logistic_regression.py
+│   │   │   ├── svm.py
+│   │   │   ├── K_Means.py
 │   │   │   ├── tree_models.py # Decision trees (coming soon)
 │   │   │   └── neural_network.py # Neural network implementation (coming soon)
 │   │   │   └── ... (other models)
@@ -52,6 +54,8 @@ ml_algos/
 │   │       ├── data_utils.py # Data processing utilities
 │   │       ├── math_utils.py # Mathematical operations
 │   │       ├── metrics.py # Evaluation metrics
+│   │       ├── smo_utils.py # Helper functions specific to the SMO algorithm (e.g., compute error cache, clipping functions)
+│   │       ├── training_utils.py # Learning rate schedules, early stopping helpers, logging functions, etc.
 │   │       └── viz_utils.py # Visualization tools
 │   └── sklearn_impl/ # Parallel sklearn implementations
 ├── data/
@@ -132,6 +136,7 @@ Follow these steps to set up the project on your local machine:
 - **Visit Kaggle Datasets and copy the URLs for the datasets:**
   - [Student Performance - Multiple Linear Regression](https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression)
   - [Breast Cancer Dataset](https://www.kaggle.com/datasets/yasserh/breast-cancer-dataset)
+  - [clustering penguins species](https://www.kaggle.com/datasets/youssefaboelwafa/clustering-penguins-species)
 
 ### Download the Datasets Using the Kaggle API
 
@@ -153,8 +158,9 @@ Follow these steps to set up the project on your local machine:
 3. **Download the datasets to `data/raw/`:**
 
    ```bash
-   kaggle datasets download -d nikhil7280/student-performance-multiple-linear-regression -p data/raw/
-   kaggle datasets download -d yasserh/breast-cancer-dataset -p data/raw/
+   kaggle datasets download -d nikhil7280/student-performance-multiple-linear-regression -p data/raw/Regression_Dataset
+   kaggle datasets download -d yasserh/breast-cancer-dataset -p data/raw/Classification_Dataset
+   kaggle datasets download -d youssefaboelwafa/clustering-penguins-species -p data/raw/K_Means_Dataset
    ```
 
 ### Manually Download (Alternative)
@@ -162,14 +168,16 @@ Follow these steps to set up the project on your local machine:
 1. **Visit the dataset URLs:**
    - [Student Performance - Multiple Linear Regression](https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression)
    - [Breast Cancer Dataset](https://www.kaggle.com/datasets/yasserh/breast-cancer-dataset)
+   - [clustering penguins species](https://www.kaggle.com/datasets/youssefaboelwafa/clustering-penguins-species)
 2. **Download the files and place them in `data/raw/`.**
 3. **Extract the Datasets**
 
    - If the downloaded files are zip archives, extract them:
 
      ```bash
-     unzip data/raw/student-performance-multiple-linear-regression.zip -d data/raw/
-     unzip data/raw/breast-cancer-dataset.zip -d data/raw/
+     unzip data/raw/student-performance-multiple-linear-regression.zip -d data/raw/Regression_Dataset
+     unzip data/raw/breast-cancer-dataset.zip -d data/raw/Classification_Dataset
+     unzip data/raw/clustering-penguins-species.zip -d data/raw/K_Means_Dataset
      ```
 
 ### Modify the Working Tree
