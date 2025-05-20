@@ -863,3 +863,122 @@ def plot_pairplot(
     if show_fig:
         plt.show()
     plt.close()
+
+
+def plot_elbow_method(
+    k_range,
+    inertias,
+    title="Elbow Method",
+    filename="elbow_method.png",
+    save_path=".",
+    save_fig=False,
+    show_fig=True,
+):
+    """
+    Plot the elbow method curve for K-Means clustering.
+
+    Parameters
+    ----------
+    k_range : list or array-like
+        Range of k values.
+    inertias : list or array-like
+        Corresponding inertias for each k.
+    title : str, optional
+        Title of the plot (default is "Elbow Method").
+    filename : str, optional
+        Filename for the saved plot (default is "elbow_method.png").
+    save_path : str, optional
+        Directory path to save the image (default is current directory ".").
+    save_fig : bool, optional
+        If True, saves the figure to file (default is False).
+    show_fig : bool, optional
+        If True, displays the figure inline (default is True).
+
+    Raises
+    ------
+    ValueError
+        If k_range and inertias are not of the same length.
+    """
+    # Input validation
+    if len(k_range) != len(inertias):
+        raise ValueError("k_range and inertias must be of the same length")
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(k_range, inertias, marker="o")  # Fixed marker parameter
+    plt.title(title)
+    plt.xlabel("Number of clusters (k)")
+    plt.ylabel("Inertia")
+    plt.grid(True)
+    if save_fig:
+        save_fullpath = os.path.join(save_path, filename)
+        plt.savefig(save_fullpath)
+    if show_fig:
+        plt.show()
+    plt.close()
+
+
+def plot_clusters(
+    X,
+    labels,
+    centroids,
+    title="K-Means Clustering",
+    filename="clusters.png",
+    save_path=".",
+    save_fig=False,
+    show_fig=True,
+):
+    """
+    Plot the clusters and centroids for 2D data, including a legend for clusters and centroids.
+
+    Parameters
+    ----------
+    X : array-like, shape (n_samples, 2)
+        Feature data.
+    labels : array-like, shape (n_samples,)
+        Cluster labels for each point.
+    centroids : array-like, shape (n_clusters, 2)
+        Coordinates of cluster centroids.
+    title : str, optional
+        Title of the plot (default is "K-Means Clustering").
+    filename : str, optional
+        Filename for the saved plot (default is "clusters.png").
+    save_path : str, optional
+        Directory path to save the image (default is current directory ".").
+    save_fig : bool, optional
+        If True, saves the figure to file (default is False).
+    show_fig : bool, optional
+        If True, displays the figure inline (default is True).
+
+    Raises
+    ------
+    ValueError
+        If the feature space is not 2D.
+    """
+    if X.shape[1] != 2:
+        raise ValueError("Plotting clusters requires 2D feature space")
+
+    plt.figure(figsize=(8, 6))
+    scatter = plt.scatter(X[:, 0], X[:, 1], c=labels, cmap="viridis", alpha=0.6)
+    centroid_scatter = plt.scatter(
+        centroids[:, 0], centroids[:, 1], c="red", marker="x", s=100
+    )
+
+    # Get legend elements for clusters
+    handles, numeric_labels = scatter.legend_elements()
+    cluster_labels = [f"Cluster {label}" for label in numeric_labels]
+
+    # Add centroid to the legend
+    handles.append(centroid_scatter)
+    cluster_labels.append("Centroids")
+
+    plt.title(title)
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+    plt.legend(handles, cluster_labels)
+
+    if save_fig:
+        save_fullpath = os.path.join(save_path, filename)
+        plt.savefig(save_fullpath)
+    if show_fig:
+        plt.show()
+    plt.close()
