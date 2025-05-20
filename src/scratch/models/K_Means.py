@@ -1,5 +1,7 @@
 import numpy as np
+
 from .base_model import BaseModel
+
 
 class KMeans(BaseModel):
     """
@@ -32,7 +34,15 @@ class KMeans(BaseModel):
         History of inertia (loss) over iterations for the best run.
     """
 
-    def __init__(self, n_clusters=8, n_init=10, max_iter=300, tol=1e-4, verbose=False, random_state=None):
+    def __init__(
+        self,
+        n_clusters=8,
+        n_init=10,
+        max_iter=300,
+        tol=1e-4,
+        verbose=False,
+        random_state=None,
+    ):
         self.n_clusters = n_clusters
         self.n_init = n_init
         self.max_iter = max_iter
@@ -78,13 +88,22 @@ class KMeans(BaseModel):
                 labels = np.argmin(distances, axis=1)
                 inertia = np.sum((X - centroids[labels]) ** 2)
                 loss_history.append(inertia)
-                
+
                 if self.verbose and (i % 10 == 0 or i == self.max_iter - 1):
                     print(f"Iteration {i + 1}/{self.max_iter}: Inertia = {inertia:.6f}")
 
                 # Update step
-                new_centroids = np.array([X[labels == k].mean(axis=0) if np.any(labels == k) else centroids[k] for k in range(self.n_clusters)])
-                
+                new_centroids = np.array(
+                    [
+                        (
+                            X[labels == k].mean(axis=0)
+                            if np.any(labels == k)
+                            else centroids[k]
+                        )
+                        for k in range(self.n_clusters)
+                    ]
+                )
+
                 # Check for convergence
                 centroid_shifts = np.linalg.norm(new_centroids - centroids, axis=1)
                 if np.all(centroid_shifts <= self.tol):
@@ -137,3 +156,32 @@ class KMeans(BaseModel):
         """
         return self.loss_history
 
+    def compute_inertias(self, X, k_range):
+        """
+        Compute inertias for a range of k values to facilitate the elbow method.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training data.
+        k_range : iterable
+            Range of k values to compute inertias for.
+
+        Returns
+        -------
+        inertias : list
+            List of inertias corresponding to each k in k_range.
+        """
+        inertias = []
+        for k in k_range:
+            model = self.__class__(
+                n_clusters=k,
+                n_init=self.n_init,
+                max_iter=self.max_iter,
+                tol=self.tol,
+                verbose=False,
+                random_state=self.random_state,
+            )
+            model.fit(X)
+            inertias.append(model.inertia_)
+        return inertias
